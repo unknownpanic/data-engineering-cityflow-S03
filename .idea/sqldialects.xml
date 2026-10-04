@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/sql/01_schemas_and_stg.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/sql/03_transform_and_load.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/04_test_rollback_queries.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/05_check_pk_duplicates.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/06_check_fk_orphans.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/07_check_stg_vs_core.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/sql/08_check_join_grain.sql" dialect="PostgreSQL" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/51cad4f7-7a28-4b4c-a4af-0c55b6e42ca8/console_1.sql" dialect="PostgreSQL" />
+    <file url="PROJECT" dialect="PostgreSQL" />
+  </component>
+</project>
