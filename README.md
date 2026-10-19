@@ -27,11 +27,32 @@ CityFlow — це сервіс міських замовлень і достав
 8. Виконайте SQL-транзакцію для валідації та завантаження перевірених даних у схему Core:
    `psql -d cityflow -f sql/03_transform_and_load.sql`
 
-## Висновки щодо якості даних
-- Вихідні дані містять низку проблем: повні дублікати рядків, відсутні номери телефонів клієнтів, аномальні від'ємні ціни та некоректні формати дат.
-- На етапі завантаження зі `stg` в `core` налаштовано автоматичну фільтрацію цих аномалій за допомогою SQL-транзакцій.
-- Структура цільової бази суворо відповідає реляційній моделі (забезпечено Constraints, PK та FK).
-- Наступним етапом розвитку проєкту є розширене очищення (Data Cleansing) та проєктування аналітичного сховища (DWH).
+## Аналітичний SQL: коректність і продуктивність
+
+Виконуйте скрипти послідовно у тій самій базі cityflow (через psql -v ON_ERROR_STOP=1):
+
+1. psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/00_prepare.sql
+2. psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/01_daily_report.sql
+3. psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/02_check_daily.sql
+4. psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/03_windows.sql
+5. psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/04_check_windows.sql
+6. psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/05_bench_prepare.sql
+### Вимірювання без індексу (1 прогрів + 3 контрольні запуски -> docs/analyze/plan_before.txt):
+psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/06_bench_query.sql
+### Створення індексу idx_lab03_cf_bench_merchant_created (merchant_id, created_at):
+psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/07_bench_index.sql
+### Вимірювання з індексом (1 прогрів + 3 контрольні запуски -> docs/analyze/plan_after.txt):
+psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/06_bench_query.sql
+### Перевірка незмінності результату:
+psql -d cityflow -v ON_ERROR_STOP=1 -f sql/analyze/08_bench_check.sql
+
+## Ключові висновки по проєкту
+
+Якість даних та транзакційність: Вхідні файли містили дублікати первинних ключів, пропущені контакти та невалідні дати створення замовлень. Завдяки розмежуванню stg і core та атомарній транзакції BEGIN ... COMMIT до core потрапили виключно валідовані узгоджені записи.
+
+Контроль Grain та уникнення fan-out при JOIN: Пряме з'єднання orders із order_items множить суму замовлення total_amount на кількість позицій у чеку. Попередня агрегація позицій у CTE items_by_order (GROUP BY order_id) перед LEFT JOIN гарантує співвідношення 1:1 і повну збіжність сум зі звіркою (difference_rows = 0, PASS).
+
+Віконні функції та індексація: Віконні конструкції SUM(...) OVER та ROW_NUMBER() OVER дозволяють обчислювати накопичувальні суми та знаходити останнє замовлення клієнта без втрати деталізації рядків. Дослідження багатоколонкового індексу (merchant_id, created_at) за допомогою EXPLAIN (ANALYZE, BUFFERS) показало перехід від послідовного сканування до індексного доступу зі збереженням 100% ідентичності вихідного набору даних.
 
 ## Архітектура (v0)
 ![Architecture](docs/architecture_v0.png)
