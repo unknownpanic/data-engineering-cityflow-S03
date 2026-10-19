@@ -1,0 +1,15 @@
+Seq Scan on bench_orders  (cost=62.10..217.03 rows=1 width=27) (actual time=0.035..0.562 rows=38 loops=1)
+  Filter: ((created_at >= (InitPlan 2).col1) AND (created_at < (InitPlan 3).col1) AND (merchant_id = (InitPlan 1).col1))
+  Rows Removed by Filter: 5958
+  Buffers: shared hit=53
+  InitPlan 1
+    ->  Seq Scan on bench_parameters  (cost=0.00..20.70 rows=1070 width=32) (actual time=0.001..0.001 rows=1 loops=1)
+          Buffers: shared hit=1
+  InitPlan 2
+    ->  Seq Scan on bench_parameters bench_parameters_1  (cost=0.00..20.70 rows=1070 width=8) (actual time=0.005..0.005 rows=1 loops=1)
+          Buffers: shared hit=1
+  InitPlan 3
+    ->  Seq Scan on bench_parameters bench_parameters_2  (cost=0.00..20.70 rows=1070 width=8) (actual time=0.001..0.001 rows=1 loops=1)
+          Buffers: shared hit=1
+Planning Time: 0.070 ms
+Execution Time: 0.578 ms
